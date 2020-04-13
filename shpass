@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# shpass
+# light bash password manager - encrypts using gpg
+
+genpass() {
+			if [[ "$length" -eq 0 ]]; then
+				echo "Length has to be longer than 0 (preferably between 15-24)"
+			else
+				dd if=/dev/urandom count=1 2> /dev/null | uuencode -m - | sed -ne 2p | cut -c-$length
+				read -n 1 -s -r -p "Press any key to continue.."
+			fi 
+}
+
+readpass() {
+			gpg --no-symkey-cache --decrypt $accountname.pass
+			read -n 1 -s -r -p "Press any key to continue.."	
+}
+addpass() {
+			if [[ ! -e $HOME/.shpass ]]; then
+			    mkdir $HOME/.shpass
+			fi
+			trap 'rm -f $HOME/.shpass/tmp' 0 1 2 5 15
+
+			echo $actpss > $HOME/.shpass/tmp
+			gpg --output "$HOME/.shpass/$accountname.pass" --no-symkey-cache --symmetric --cipher-algo AES256 $HOME/.shpass/tmp
+}
+
+case "$1" in
+	gen) length=$2
+	genpass 
+	exit
+	;;
+	read) 
+	accountname=$2
+	readpass 
+	exit
+	;;
+	add) 
+	accountname=$2
+	echo "account pass: "
+	read -s actpss
+	addpass 
+	exit
+	;;
+	*)
+	echo "shpass Password Manager
+  gen <length> - generate password with chosen <length>
+  read <account_name> - read <account_name> password (requires gpg auth)
+  add <account_name> - add a password for <account_name> (will encrypt using gpg)"
+	exit
+	;;
+esac
