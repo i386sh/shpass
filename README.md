@@ -7,6 +7,7 @@ A light shell-script password manager.
 `shpass read mail` - ask for encryption pass, and decrypt.  
 
 ## installation
+**REQUIRES GPG TO BE INSTALLED**
 1. clone repo
 2. `chmod +x shpass`
 3. copy to `/usr/local/bin`
