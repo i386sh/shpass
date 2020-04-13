@@ -13,7 +13,7 @@ genpass() {
 }
 
 readpass() {
-			gpg --no-symkey-cache --decrypt $accountname.pass
+			gpg --no-symkey-cache --decrypt $HOME/.shpass/$accountname.pass
 			read -n 1 -s -r -p "Press any key to continue.."	
 }
 addpass() {
