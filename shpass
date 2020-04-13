@@ -46,8 +46,8 @@ case "$1" in
 	*)
 	echo "shpass Password Manager
   gen <length> - generate password with chosen <length>
-  read <account_name> - read <account_name> password (requires gpg auth)
-  add <account_name> - add a password for <account_name> (will encrypt using gpg)"
+  read <account_name> - read <account_name> password
+  add <account_name> - add a password for <account_name>"
 	exit
 	;;
 esac
