@@ -1,0 +1,1 @@
+echo "installing shpass..";mkdir $HOME/shpass_install;git clone https://github.com/i386sh/shpass.git $HOME/shpass_install;cd shpass_install;chmod +x shpass;sudo mv shpass /usr/local/bin/shpass;cd $HOME;rm -rf shpass_install;echo "shpass installed."
