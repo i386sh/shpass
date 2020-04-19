@@ -13,4 +13,4 @@ A light shell-script password manager.
 3. copy to `/usr/local/bin`
   
 **New install script**  
-`bash -c "$(curl -fsSL https://raw.githubusercontent.com/i386sh/shpass/master/quick_install)`
+`bash -c "$(curl -fsSL https://raw.githubusercontent.com/i386sh/shpass/master/quick_install)"`
