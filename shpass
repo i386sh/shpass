@@ -3,87 +3,70 @@
 # light bash password manager - encrypts using gpg
 
 if [[ -f $HOME/.shpass/config ]]; then
-	source $HOME/.shpass/config
+    source $HOME/.shpass/config
 else
-	echo """# shpass configuration
+    if [[ ! -d $HOME/.shpass ]]; then
+        mkdir $HOME/.shpass
+    fi
+    echo """# shpass configuration
   SYMKEY_CACHE=false # Recommended to keep off so passkey isn't cached.
-	
-# rsync config
-  RSYNC_ENABLED=false # Sync encrypted .pass files to secure Linux server specified in RSYNC_HOST
-  RSYNC_USERNAME= # Username of user on secure Linux server
-  RSYNC_HOST= # IP/URL to secure Linux server
-  RSYNC_DIR=~/.sync_shpss""" > $HOME/.shpass/config
+    """ > $HOME/.shpass/config
+    source $HOME/.shpass/config
+    echo "shpass: first run; generated config at $HOME/.shpass"
 fi
 
 genpass() {
-			if [[ "$length" -eq 0 ]]; then
-				echo "Length has to be longer than 0 (preferably between 15-24)"
-			else
-				dd if=/dev/urandom count=1 2> /dev/null | uuencode -m - | sed -ne 2p | cut -c-$length
-			fi 
+    if [[ "$length" =~ ^[+-]?[0-9]+$ ]]; then
+        if [[ "$length" -lt 1 ]]; then
+            echo "Length has to be longer than 0 (preferably between 15-24)"
+        else
+            dd if=/dev/urandom count=1 2> /dev/null | uuencode -m - | sed -ne 2p | cut -c-$length
+        fi
+    elif [[ "$length" =~ ^[+-]?[0-9]+\.?[0-9]*$ ]]; then
+        echo "Number is a float, which is not allowed."
+
+    fi
 }
 readpass() {
-			if [ "$SYMKEY_CACHE" = false ]; then
-				gpg --no-symkey-cache --decrypt $HOME/.shpass/$accountname.pass
-			else
-				gpg --decrypt $HOME/.shpass/$accountname.pass
-			fi
+    if [ "$SYMKEY_CACHE" = false ]; then
+        gpg --no-symkey-cache --decrypt $HOME/.shpass/$accountname.pass
+    else
+        gpg --decrypt $HOME/.shpass/$accountname.pass
+    fi
 }
 addpass() {
-			if [[ ! -e $HOME/.shpass ]]; then
-			    mkdir $HOME/.shpass
-			fi
-			trap 'rm -f $HOME/.shpass/tmp' 0 1 2 5 15
+    if [[ ! -e $HOME/.shpass ]]; then
+        mkdir $HOME/.shpass
+    fi
+    trap 'rm -f $HOME/.shpass/tmp' 0 1 2 5 15
 
-			echo $actpss > $HOME/.shpass/tmp
-			if [ "$SYMKEY_CACHE" = false ]; then
-				gpg --output "$HOME/.shpass/$accountname.pass" --no-symkey-cache --symmetric --cipher-algo AES256 $HOME/.shpass/tmp
-			else
-				gpg --output "$HOME/.shpass/$accountname.pass" --symmetric --cipher-algo AES256 $HOME/.shpass/tmp
-			fi
-}
-pushpass() {
-			if [ "$RSYNC_ENABLED" = true ]; then
-				rsync --exclude "config" -a $HOME/.shpass/ "$RSYNC_USERNAME"@"$RSYNC_HOST":$RSYNC_DIR
-			else
-				echo "rsync is not enabled in config ($HOME/.shpass/config)"
-			fi	
-}
-syncpass() {
-			if [ "$RSYNC_ENABLED" = true ]; then
-				rsync -a "$RSYNC_USERNAME"@"$RSYNC_HOST":$RSYNC_DIR/* $HOME/.shpass/
-			else
-				echo "rsync is not enabled in config ($HOME/.shpass/config)"
-			fi			
+    echo $actpss > $HOME/.shpass/tmp
+    if [ "$SYMKEY_CACHE" = false ]; then
+        gpg --output "$HOME/.shpass/$accountname.pass" --no-symkey-cache --symmetric --cipher-algo AES256 $HOME/.shpass/tmp
+    else
+        gpg --output "$HOME/.shpass/$accountname.pass" --symmetric --cipher-algo AES256 $HOME/.shpass/tmp
+    fi
 }
 case "$1" in
-	gen) length=$2
-	genpass 
-	exit
-	;;
-	read) accountname=$2
-	readpass 
-	exit
-	;;
-	add) accountname=$2
-	echo "account pass: "
-	read -s actpss
-	addpass 
-	exit
-	;;
-	push) pushpass
-	exit
-	;;
-	pull) syncpass
-	exit
-	;;
-	*)
-	echo "shpass Password Manager
+    gen) length=$2
+        genpass
+        exit
+        ;;
+    read) accountname=$2
+        readpass
+        exit
+        ;;
+    add) accountname=$2
+        echo "account pass: "
+        read -s actpss
+        addpass
+        exit
+        ;;
+    *)
+        echo "shpass Password Manager
   gen <length> - generate password with chosen <length>
   read <account_name> - read <account_name> password
-  add <account_name> - add a password for <account_name>
-  push - rsync to host set in shpass config
-  pull - rsync from host set in shpass config"
-	exit
-	;;
+  add <account_name> - add a password for <account_name>"
+        exit
+        ;;
 esac
