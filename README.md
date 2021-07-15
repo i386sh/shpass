@@ -2,6 +2,7 @@
 A light shell-script password manager.
 
 ## usage
+##### I am not responsible for any issues that arise from usage of this software.
 `shpass gen 18` - generate password with 18 characters  
 `shpass add mail` - add account *mail* (will ask for account password, and gpg encryption pass)  
 `shpass read mail` - read passowrd for account *mail* (will ask for gpg encryption pass)
